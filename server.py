@@ -1,22 +1,28 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-# Twój klucz Finnhub
+# <-- tutaj wstaw swój klucz Finnhub
 API_KEY = "d6cp7i9r01qsiik32bk0d6cp7i9r01qsiik32bkg"
 
+# Endpoint główny: zwraca index.html
+@app.route("/")
+def index():
+    return send_from_directory(os.path.dirname(os.path.abspath(__file__)), "index.html")
+
+# Endpoint do pobierania ceny
 @app.route("/get_price")
 def get_price():
     symbol = request.args.get("symbol")
     if not symbol:
         return jsonify({"error": "Brak symbolu"}), 400
 
-    # Jeśli polska spółka (zakładamy końcówkę .WA), używamy GPW
+    # Polska spółka (GPW) kończy się .WA lub sam symbol jest z GPW
     if symbol.endswith(".WA") or symbol.isalpha():
-        # GPW prefix w Finnhub
         fetch_symbol = f"GPW:{symbol.replace('.WA','')}"
     else:
         fetch_symbol = symbol
@@ -29,4 +35,5 @@ def get_price():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
+    # 0.0.0.0 żeby Render mógł wystawić serwis publicznie
     app.run(host="0.0.0.0", port=5000)
