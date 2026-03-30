@@ -69,7 +69,7 @@ async function getUSDPLN() {
 async function getPriceFinnhub(ticker, currency) {
   try {
     let symbol = currency === "PLN" ? `GPW:${ticker}` : ticker; // <- tutaj poprawka dla GPW
-    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`);
+    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${d6cp7i9r01qsiik32bk0d6cp7i9r01qsiik32bkg}`);
     const data = await res.json();
     if(!data.c) return 0;
     return parseFloat(data.c);
