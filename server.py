@@ -9,7 +9,7 @@ CORS(app)
 def get_price():
     symbol = request.args.get("symbol")
     api_key = "d6cp7i9r01qsiik32bk0d6cp7i9r01qsiik32bkg"
-    url = f"https://finnhub.io/api/v1/quote?symbol={symbol}&token={api_key}"
+    url = f"https://finnhub.io/api/v1/quote?symbol={symbol}&token={d6cp7i9r01qsiik32bk0d6cp7i9r01qsiik32bkg}"
     res = requests.get(url)
     data = res.json()
     return jsonify(data)
