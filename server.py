@@ -18,10 +18,14 @@ def get_price_finnhub(symbol):
 
 def get_price_stooq(symbol):
     try:
-        url = f"https://stooq.pl/q/l/?s={symbol.lower()}&f=sd2t2ohlc&h&e=csv"
+        # KLUCZOWE: dodajemy .wa
+        url = f"https://stooq.pl/q/l/?s={symbol.lower()}.wa&f=sd2t2ohlc&h&e=csv"
         res = requests.get(url)
+        res.encoding = 'utf-8'
+        
         f = StringIO(res.text)
         reader = csv.DictReader(f)
+        
         for row in reader:
             price = row.get("Close")
             if price and price != "N/D":
