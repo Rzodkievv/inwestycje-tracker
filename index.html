@@ -44,7 +44,7 @@ input, button { padding: 5px; margin: 5px; }
 <canvas id="chart"></canvas>
 
 <script>
-const BACKEND_URL = "https://inwestycje-tracker.onrender.com"; // Twój Render URL
+const BACKEND_URL = "https://inwestycje-tracker.onrender.com"; // Twój Render backend
 let portfolio = [];
 
 let chartInstance = null;
@@ -60,7 +60,7 @@ async function getUSDPLN() {
     }
 }
 
-// Pobranie ceny przez backend
+// Pobranie ceny z backendu
 async function getPrice(symbol) {
     try {
         const res = await fetch(`${BACKEND_URL}/get_price?symbol=${symbol}`);
@@ -71,7 +71,7 @@ async function getPrice(symbol) {
     }
 }
 
-// Render
+// Render tabeli i wykresu
 async function render() {
     const table = document.getElementById("table");
     table.innerHTML = "";
@@ -128,6 +128,7 @@ document.getElementById("addStockForm").addEventListener("submit", e=>{
     render();
 });
 
+// Render przy ładowaniu
 window.addEventListener("DOMContentLoaded", render);
 </script>
 
