@@ -19,7 +19,7 @@
 
 <form id="addStockForm">
   <input type="text" id="name" placeholder="Nazwa spółki" required>
-  <input type="text" id="ticker" placeholder="Ticker (np. AAPL lub PEO)" required>
+  <input type="text" id="ticker" placeholder="Ticker (np. AAPL lub PEO.WA)" required>
   <input type="number" id="shares" placeholder="Ilość" required>
   <input type="number" id="buyPrice" placeholder="Cena zakupu (PLN/USD)" required>
   <select id="currency">
@@ -44,7 +44,7 @@
 <canvas id="chart"></canvas>
 
 <script>
-const API_KEY = "d6cp7i9r01qsiik32bk0d6cp7i9r01qsiik32bkg"; //
+const BACKEND_URL = "https://inwestycje-tracker.onrender.com";
 
 let portfolio = [
   { name: "Apple", ticker: "AAPL", shares: 2, buyPrice: 600, currency: "USD", tempPrice: null },
@@ -53,51 +53,41 @@ let portfolio = [
 
 let chartInstance = null;
 
-// Kurs USD → PLN
 async function getUSDPLN() {
   try {
     const res = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=PLN");
     const data = await res.json();
     return parseFloat(data.rates.PLN);
-  } catch(err) {
-    console.log("Nie udało się pobrać kursu USD:", err);
-    return 1;
-  }
+  } catch(err) { return 1; }
 }
 
-// Pobiera aktualną cenę ze Finnhub
-async function getPriceFinnhub(ticker, currency) {
-  try {
-    let symbol = currency === "PLN" ? `GPW:${ticker}` : ticker; // <- tutaj poprawka dla GPW
-    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${d6cp7i9r01qsiik32bk0d6cp7i9r01qsiik32bkg}`);
+async function getPrice(ticker, currency){
+  try{
+    const res = await fetch(`${BACKEND_URL}/get_price?symbol=${ticker}`);
     const data = await res.json();
     if(!data.c) return 0;
     return parseFloat(data.c);
-  } catch(err) {
-    console.log("Błąd pobierania ceny Finnhub:", err);
+  }catch(err){
+    console.log("Błąd pobierania ceny:", err);
     return 0;
   }
 }
 
-// Render tabeli i wykresu
 async function render() {
   const table = document.getElementById("table");
   table.innerHTML = "";
-
   const usdToPln = await getUSDPLN();
-  let labels = [];
-  let values = [];
+  let labels = [], values = [];
 
   for(let stock of portfolio){
-    if(stock.tempPrice === null) {
-      stock.tempPrice = await getPriceFinnhub(stock.ticker, stock.currency);
+    if(stock.tempPrice===null){
+      stock.tempPrice = await getPrice(stock.ticker, stock.currency);
     }
-
-    const pricePLN = stock.currency === "USD" ? stock.tempPrice * usdToPln : stock.tempPrice;
-    const buyPricePLN = stock.buyPrice * (stock.currency === "USD" ? usdToPln : 1);
-    const value = stock.shares * pricePLN;
-    const cost = stock.shares * buyPricePLN;
-    const profit = value - cost;
+    const pricePLN = stock.currency==="USD"?stock.tempPrice*usdToPln:stock.tempPrice;
+    const buyPricePLN = stock.buyPrice*(stock.currency==="USD"?usdToPln:1);
+    const value = stock.shares*pricePLN;
+    const cost = stock.shares*buyPricePLN;
+    const profit = value-cost;
 
     labels.push(stock.name);
     values.push(value);
@@ -117,14 +107,13 @@ async function render() {
   const ctx = document.getElementById("chart");
   if(chartInstance) chartInstance.destroy();
   chartInstance = new Chart(ctx, {
-    type: "pie",
-    data: { labels, datasets: [{ data: values, backgroundColor: ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f'] }] },
-    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    type:"pie",
+    data:{ labels, datasets:[{ data: values, backgroundColor:['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f'] }] },
+    options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
   });
 }
 
-// Dodawanie spółki
-document.getElementById("addStockForm").addEventListener("submit", (e)=>{
+document.getElementById("addStockForm").addEventListener("submit",(e)=>{
   e.preventDefault();
   const name = document.getElementById("name").value;
   const ticker = document.getElementById("ticker").value.toUpperCase();
@@ -132,15 +121,12 @@ document.getElementById("addStockForm").addEventListener("submit", (e)=>{
   const buyPrice = parseFloat(document.getElementById("buyPrice").value);
   const currency = document.getElementById("currency").value;
 
-  const newStock = {name, ticker, shares, buyPrice, currency, tempPrice: null};
-  portfolio.push(newStock);
+  portfolio.push({name,ticker,shares,buyPrice,currency,tempPrice:null});
   e.target.reset();
   render();
 });
 
-// Render przy ładowaniu
 window.addEventListener("DOMContentLoaded", render);
 </script>
-
 </body>
 </html>
