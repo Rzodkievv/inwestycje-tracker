@@ -28,7 +28,7 @@ def get_price():
         fetch_symbol = symbol
 
     try:
-        res = requests.get(f"https://finnhub.io/api/v1/quote?symbol={fetch_symbol}&token={API_KEY}")
+        res = requests.get(f"https://finnhub.io/api/v1/quote?symbol={fetch_symbol}&token={d6cp7i9r01qsiik32bk0d6cp7i9r01qsiik32bkg}")
         data = res.json()
         return jsonify(data)
     except Exception as e:
