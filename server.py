@@ -1,44 +1,39 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import requests
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.')
 
-# <-- Podmień na swój klucz Finnhub -->
+# Wklej tutaj swój klucz API z Finnhub
 API_KEY = "d6cp7i9r01qsiik32bk0d6cp7i9r01qsiik32bkg"
 
-# Lista zagranicznych giełd (przykładowo)
-FOREIGN_TICKERS = ['AAPL', 'MSFT', 'TSLA', 'GOOGL', 'AMZN', 'FB']
-
-@app.route('/get_price')
+# Endpoint pobierający aktualną cenę
+@app.route("/get_price")
 def get_price():
-    symbol = request.args.get('symbol')
+    symbol = request.args.get("symbol")
     if not symbol:
-        return jsonify({"error": "Nie podano symbolu"}), 400
-
-    symbol = symbol.upper()
-
-    # Jeśli symbol jest na liście zagranicznych giełd, używamy normalnego tickera
-    if symbol in FOREIGN_TICKERS:
-        fetch_symbol = symbol
-    else:
-        # Polskie spółki GPW
-        fetch_symbol = f"GPW:{symbol}"
-
+        return jsonify({"error": "Brak symbolu"}), 400
     try:
-        res = requests.get(f"https://finnhub.io/api/v1/quote?symbol={fetch_symbol}&token={API_KEY}")
+        # Pobieramy dane z Finnhub
+        res = requests.get(
+            f"https://finnhub.io/api/v1/quote?symbol={symbol}&token={API_KEY}"
+        )
         data = res.json()
-        # Finnhub zwraca klucze: c (current), h (high), l (low), o (open), pc (prev close)
-        # Jeśli brak ceny, zwracamy 0
-        return jsonify({
-            "c": data.get("c", 0),
-            "h": data.get("h", 0),
-            "l": data.get("l", 0),
-            "o": data.get("o", 0),
-            "pc": data.get("pc", 0),
-            "t": data.get("t", 0)
-        })
+        return jsonify(data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Serwowanie pliku index.html pod adresem głównym
+@app.route("/")
+def index():
+    return send_from_directory(".", "index.html")
+
+# Obsługa statycznych plików (np. JS, CSS)
+@app.route("/<path:path>")
+def static_files(path):
+    return send_from_directory(".", path)
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    # Render ustawia port przez zmienną środowiskową
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
